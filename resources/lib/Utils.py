@@ -13,7 +13,6 @@ import os
 import time
 import hashlib
 import simplejson as json
-import re
 from functools import wraps
 
 ADDON = xbmcaddon.Addon()
@@ -76,15 +75,6 @@ def get_JSON_response(url="", cache_days=7.0, folder=False, headers=False):
         cache_path = xbmc.translatePath(os.path.join(ADDON_DATA_PATH))
     path = os.path.join(cache_path, hashed_url + ".txt")
     cache_seconds = int(cache_days * 86400.0)
-    prop_time = HOME.getProperty(hashed_url + "_timestamp")
-    if prop_time and now - float(prop_time) < cache_seconds:
-        try:
-            prop = json.loads(HOME.getProperty(hashed_url))
-            log("prop load for %s. time: %f" % (url, time.time() - now))
-            if prop:
-                return prop
-        except:
-            log("could not load prop data for %s" % url)
     if xbmcvfs.exists(path) and ((now - os.path.getmtime(path)) < cache_seconds):
         results = read_from_file(path)
         log("loaded file for %s. time: %f" % (url, time.time() - now))
@@ -102,8 +92,6 @@ def get_JSON_response(url="", cache_days=7.0, folder=False, headers=False):
             else:
                 results = []
     if results:
-        HOME.setProperty(hashed_url + "_timestamp", str(now))
-        HOME.setProperty(hashed_url, json.dumps(results))
         return results
     else:
         return []
@@ -210,26 +198,15 @@ def create_listitems(data=None):
             value = unicode(value)
             if key.lower() in ["name", "label"]:
                 listitem.setLabel(value)
-            elif key.lower() in ["label2"]:
-                listitem.setLabel2(value)
             elif key.lower() in ["title"]:
                 listitem.setLabel(value)
                 listitem.setInfo('video', {key.lower(): value})
-            elif key.lower() in ["thumb"]:
-                listitem.setThumbnailImage(value)
-                listitem.setArt({key.lower(): value})
             elif key.lower() in ["icon"]:
                 listitem.setIconImage(value)
                 listitem.setArt({key.lower(): value})
             elif key.lower() in ["path"]:
                 listitem.setPath(path=value)
-                # listitem.setProperty('%s' % (key), value)
-            # elif key.lower() in ["season", "episode"]:
-            #     listitem.setInfo('video', {key.lower(): int(value)})
-            #     listitem.setProperty('%s' % (key), value)
-            elif key.lower() in ["poster", "banner", "fanart", "clearart", "clearlogo", "landscape",
-                                 "discart", "characterart", "tvshow.fanart", "tvshow.poster",
-                                 "tvshow.banner", "tvshow.clearart", "tvshow.characterart"]:
+            elif key.lower() in ["thumb", "fanart"]:
                 listitem.setArt({key.lower(): value})
             elif key.lower() in INT_INFOLABELS:
                 try:
@@ -248,29 +225,3 @@ def create_listitems(data=None):
         listitem.setProperty("index", str(count))
         itemlist.append(listitem)
     return itemlist
-
-
-def clean_text(text):
-    if not text:
-        return ""
-    text = re.sub('(From Wikipedia, the free encyclopedia)|(Description above from the Wikipedia.*?Wikipedia)', '', text)
-    text = re.sub('<(.|\n|\r)*?>', '', text)
-    text = text.replace('<br \/>', '[CR]')
-    text = text.replace('<em>', '[I]').replace('</em>', '[/I]')
-    text = text.replace('&amp;', '&')
-    text = text.replace('&gt;', '>').replace('&lt;', '<')
-    text = text.replace('&#39;', "'").replace('&quot;', '"')
-    text = re.sub("\n\\.$", "", text)
-    text = text.replace('User-contributed text is available under the Creative Commons By-SA License and may also be available under the GNU FDL.', '')
-    while text:
-        s = text[0]
-        e = text[-1]
-        if s in [u'\u200b', " ", "\n"]:
-            text = text[1:]
-        elif e in [u'\u200b', " ", "\n"]:
-            text = text[:-1]
-        elif s.startswith(".") and not s.startswith(".."):
-            text = text[1:]
-        else:
-            break
-    return text.strip()
