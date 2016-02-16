@@ -171,10 +171,9 @@ def add_image(item, total=0):
     liz = xbmcgui.ListItem(item["label"],
                            iconImage="DefaultImage.png",
                            thumbnailImage=item["thumb"])
+    liz.setProperty("description", item["plot"])
     liz.setInfo(type="image",
                 infoLabels={"Id": item["label"]})
-    liz.setInfo(type="video",
-                infoLabels={"plot": item["plot"]})
     return xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
                                        url=item["thumb"],
                                        listitem=liz,

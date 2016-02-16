@@ -57,9 +57,9 @@ def browsebyoffset_view(offset):
 def get_xkcd_images(limit=20, offset=0, randomize=False):
     now = datetime.datetime.now()
     filename = "xkcd%ix%ix%i" % (now.month, now.day, now.year)
-    # path = xbmc.translatePath("%s/%s.txt" % (ADDON_DATA_PATH, filename))
-    # if xbmcvfs.exists(path):
-    #     return read_from_file(path)
+    path = xbmc.translatePath("%s/%s.txt" % (ADDON_DATA_PATH, filename))
+    if xbmcvfs.exists(path) and randomize:
+        return read_from_file(path)
     items = []
     for i in range(0, limit):
         comic_id = random.randrange(1, 1640) if randomize else i + offset
