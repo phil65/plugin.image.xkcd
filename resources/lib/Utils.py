@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-# Copyright (C) 2015 - Philipp Temminghoff <phil65@kodi.tv>
+# Copyright (C) 2016- Philipp Temminghoff <phil65@kodi.tv>
 # This program is Free Software see LICENSE file for details
 
 import xbmc
@@ -10,6 +10,7 @@ import xbmcvfs
 import xbmcplugin
 import urllib2
 import os
+import sys
 import time
 import hashlib
 import simplejson as json
@@ -63,7 +64,7 @@ def get_http(url=None, headers=False):
     return None
 
 
-def get_JSON_response(url="", cache_days=7.0, folder=False, headers=False):
+def get_JSON_response(url="", cache_days=0.0, folder=False, headers=False):
     """
     get JSON response for *url, makes use of prop and file cache.
     """
@@ -170,15 +171,29 @@ def pass_list_to_skin(name="", data=[], prefix="", handle=None, limit=False):
         data = data[:int(limit)]
     if not handle:
         return None
-    HOME.clearProperty(name)
-    if data:
-        HOME.setProperty(name + ".Count", str(len(data)))
-        items = create_listitems(data)
-        items = [(i.getProperty("path"), i, bool(i.getProperty("directory"))) for i in items]
-        xbmcplugin.addDirectoryItems(handle=handle,
-                                     items=items,
-                                     totalItems=len(items))
+    # if data:
+    #     items = create_listitems(data)
+    #     items = [(i.getProperty("path"), i, False) for i in items]
+    #     xbmcplugin.addDirectoryItems(handle=handle,
+    #                                  items=items,
+    #                                  totalItems=len(items))
+    prettyprint(data)
+    for item in data:
+        add_image(item["label"], item["thumb"], item["thumb"])
     xbmcplugin.endOfDirectory(handle)
+
+
+def add_image(iId, url, icon, tot=0):
+    liz = xbmcgui.ListItem(iId,
+                           iconImage="DefaultImage.png",
+                           thumbnailImage=icon)
+    liz.setInfo(type="image",
+                infoLabels={"Id": iId})
+    return xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
+                                       url=url,
+                                       listitem=liz,
+                                       isFolder=False,
+                                       totalItems=tot)
 
 
 def create_listitems(data=None):
@@ -201,11 +216,9 @@ def create_listitems(data=None):
             elif key.lower() in ["title"]:
                 listitem.setLabel(value)
                 listitem.setInfo('video', {key.lower(): value})
-            elif key.lower() in ["icon"]:
-                listitem.setIconImage(value)
-                listitem.setArt({key.lower(): value})
             elif key.lower() in ["path"]:
                 listitem.setPath(path=value)
+                listitem.setProperty("path", value)
             elif key.lower() in ["thumb", "fanart"]:
                 listitem.setArt({key.lower(): value})
             elif key.lower() in INT_INFOLABELS:

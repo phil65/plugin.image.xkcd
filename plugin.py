@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 
-# Copyright (C) 2015 - Philipp Temminghoff <phil65@kodi.tv>
+# Copyright (C) 2016- Philipp Temminghoff <phil65@kodi.tv>
 # This program is Free Software see LICENSE file for details
 
 import sys
@@ -42,10 +42,8 @@ class Main:
     def _parse_argv(self):
         args = sys.argv[2][1:]
         self.handle = int(sys.argv[1])
-        self.control = "plugin"
         self.infos = []
-        self.params = {"handle": self.handle,
-                       "control": self.control}
+        self.params = {"handle": self.handle}
         if args.startswith("---"):
             delimiter = "&"
             args = args[3:]
