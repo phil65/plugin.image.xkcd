@@ -171,37 +171,25 @@ def pass_list_to_skin(name="", data=[], prefix="", handle=None, limit=False):
         data = data[:int(limit)]
     if not handle:
         return None
-    # if data:
-    #     items = create_listitems(data)
-    #     items = [(i.getProperty("path"), i, False) for i in items]
-    #     xbmcplugin.addDirectoryItems(handle=handle,
-    #                                  items=items,
-    #                                  totalItems=len(items))
-    prettyprint(data)
     for item in data:
         add_image(item["label"], item["thumb"], item["thumb"])
     xbmcplugin.endOfDirectory(handle)
 
 
-def add_image(iId, url, icon, tot=0):
-    liz = xbmcgui.ListItem(iId,
+def add_image(label, url, icon, total=0):
+    liz = xbmcgui.ListItem(label,
                            iconImage="DefaultImage.png",
                            thumbnailImage=icon)
     liz.setInfo(type="image",
-                infoLabels={"Id": iId})
+                infoLabels={"Id": label})
     return xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
                                        url=url,
                                        listitem=liz,
                                        isFolder=False,
-                                       totalItems=tot)
+                                       totalItems=total)
 
 
 def create_listitems(data=None):
-    INT_INFOLABELS = ["year", "episode", "season", "top250", "tracknumber", "playcount", "overlay"]
-    FLOAT_INFOLABELS = ["rating"]
-    STRING_INFOLABELS = ["genre", "director", "mpaa", "plot", "plotoutline", "title", "originaltitle",
-                         "sorttitle", "duration", "studio", "tagline", "writer", "tvshowtitle", "premiered",
-                         "status", "code", "aired", "credits", "lastplayed", "album", "votes", "trailer", "dateadded"]
     if not data:
         return []
     itemlist = []
@@ -221,19 +209,6 @@ def create_listitems(data=None):
                 listitem.setProperty("path", value)
             elif key.lower() in ["thumb", "fanart"]:
                 listitem.setArt({key.lower(): value})
-            elif key.lower() in INT_INFOLABELS:
-                try:
-                    listitem.setInfo('video', {key.lower(): int(value)})
-                except:
-                    pass
-            elif key.lower() in STRING_INFOLABELS:
-                listitem.setInfo('video', {key.lower(): value})
-            elif key.lower() in FLOAT_INFOLABELS:
-                try:
-                    listitem.setInfo('video', {key.lower(): "%1.1f" % float(value)})
-                except:
-                    pass
-            # else:
             listitem.setProperty('%s' % (key), value)
         listitem.setProperty("index", str(count))
         itemlist.append(listitem)

@@ -3,72 +3,80 @@
 # Copyright (C) 2016- Philipp Temminghoff <phil65@kodi.tv>
 # This program is Free Software see LICENSE file for details
 
-import sys
 import xbmc
 import xbmcplugin
 import xbmcgui
+import random
+import datetime
+import routing
 from resources.lib.Utils import *
-from resources.lib import MiscScraper
+
+plugin = routing.Plugin()
 
 
-class Main:
-
-    def __init__(self):
-        xbmc.log("version %s started" % ADDON_VERSION)
-        self._parse_argv()
-        if self.infos:
-            for info in self.infos:
-                listitems = start_info_actions(info, self.params)
-                xbmcplugin.addSortMethod(self.handle, xbmcplugin.SORT_METHOD_TITLE)
-                if info.endswith("images"):
-                    xbmcplugin.setContent(self.handle, 'images')
-                else:
-                    xbmcplugin.setContent(self.handle, '')
-                pass_list_to_skin(name=info,
-                                  data=listitems,
-                                  prefix=self.params.get("prefix", ""),
-                                  handle=self.handle,
-                                  limit=self.params.get("limit", 20))
-        else:
-            items = {"todaysimages": "Today´s images",
-                     "search": "Browse by offset"}
-            for key, value in items.iteritems():
-                li = xbmcgui.ListItem(value, iconImage='DefaultFolder.png')
-                url = 'plugin://plugin.image.xkcd?info=%s' % key
-                xbmcplugin.addDirectoryItem(handle=self.handle, url=url,
-                                            listitem=li, isFolder=True)
-            xbmcplugin.endOfDirectory(self.handle)
-
-    def _parse_argv(self):
-        args = sys.argv[2][1:]
-        self.handle = int(sys.argv[1])
-        self.infos = []
-        self.params = {"handle": self.handle}
-        if args.startswith("---"):
-            delimiter = "&"
-            args = args[3:]
-        else:
-            delimiter = "&&"
-        for arg in args.split(delimiter):
-            param = arg.replace('"', '').replace("'", " ")
-            if param.startswith('info='):
-                self.infos.append(param[5:])
-            else:
-                try:
-                    self.params[param.split("=")[0].lower()] = "=".join(param.split("=")[1:]).strip()
-                except:
-                    pass
+@plugin.route('/')
+def root():
+    items = [
+        (plugin.url_for(todaysimages), xbmcgui.ListItem("Today´s images"), True),
+        (plugin.url_for(browsebyoffset), xbmcgui.ListItem("Browse by offset"), True),
+    ]
+    xbmcplugin.addDirectoryItems(plugin.handle, items)
+    xbmcplugin.endOfDirectory(plugin.handle)
 
 
-def start_info_actions(info, params):
-    log(info)
-    prettyprint(params)
-    if "prefix" in params and not params["prefix"].endswith('.'):
-        params["prefix"] = params["prefix"] + '.'
-    if info == 'todaysimages':
-        return MiscScraper.get_xkcd_images()
+@plugin.route('/todaysimages')
+def todaysimages():
+    xbmcplugin.setContent(plugin.handle, 'images')
+    items = get_xkcd_images(random=True)
+    for item in items:
+        add_image(item["label"], item["thumb"], item["thumb"])
+    xbmcplugin.endOfDirectory(plugin.handle)
 
+
+@plugin.route('/browsebyoffset')
+def browsebyoffset():
+    xbmcplugin.setContent(plugin.handle, 'genres')
+    items = []
+    for i in range(0, 100):
+        items.append((plugin.url_for(browsebyoffset_view, i*20),
+                      xbmcgui.ListItem("%s - %s" % (str(i * 20 + 1), str((i + 1) * 20))),
+                      True))
+    xbmcplugin.addDirectoryItems(plugin.handle, items)
+    xbmcplugin.endOfDirectory(plugin.handle)
+
+
+@plugin.route('/browsebyoffset/<offset>')
+def browsebyoffset_view(offset):
+    xbmcplugin.setContent(plugin.handle, 'images')
+    items = get_xkcd_images(offset=int(offset))
+    for item in items:
+        add_image(item["label"], item["thumb"], item["thumb"])
+    xbmcplugin.endOfDirectory(plugin.handle)
+
+
+def get_xkcd_images(limit=20, offset=0, randomize=False):
+    now = datetime.datetime.now()
+    filename = "xkcd%ix%ix%i" % (now.month, now.day, now.year)
+    # path = xbmc.translatePath("%s/%s.txt" % (ADDON_DATA_PATH, filename))
+    # if xbmcvfs.exists(path):
+    #     return read_from_file(path)
+    items = []
+    for i in range(0, limit):
+        comic_id = random.randrange(1, 1640) if randomize else i + offset
+        url = 'http://xkcd.com/%i/info.0.json' % comic_id
+        results = get_JSON_response(url, 9999, folder="XKCD")
+        if not results:
+            continue
+        item = {'thumb': results["img"],
+                'path': results["img"],
+                'label': results["title"],
+                'plot': results["alt"]}
+        items.append(item)
+    save_to_file(content=items,
+                 filename=filename,
+                 path=ADDON_DATA_PATH)
+    return items
 
 if (__name__ == "__main__"):
-    Main()
+    plugin.run()
 xbmc.log('finished')
