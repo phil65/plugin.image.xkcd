@@ -29,7 +29,7 @@ def todaysimages():
     xbmcplugin.setContent(plugin.handle, 'images')
     items = get_xkcd_images(randomize=True)
     for item in items:
-        add_image(item["label"], item["thumb"], item["thumb"])
+        add_image(item)
     xbmcplugin.endOfDirectory(plugin.handle)
 
 
@@ -50,7 +50,7 @@ def browsebyoffset_view(offset):
     xbmcplugin.setContent(plugin.handle, 'images')
     items = get_xkcd_images(offset=int(offset))
     for item in items:
-        add_image(item["label"], item["thumb"], item["thumb"])
+        add_image(item)
     xbmcplugin.endOfDirectory(plugin.handle)
 
 

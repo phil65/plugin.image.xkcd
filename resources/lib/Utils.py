@@ -176,14 +176,16 @@ def pass_list_to_skin(name="", data=[], prefix="", handle=None, limit=False):
     xbmcplugin.endOfDirectory(handle)
 
 
-def add_image(label, url, icon, total=0):
-    liz = xbmcgui.ListItem(label,
+def add_image(item, total=0):
+    liz = xbmcgui.ListItem(item["label"],
                            iconImage="DefaultImage.png",
-                           thumbnailImage=icon)
+                           thumbnailImage=item["thumb"])
     liz.setInfo(type="image",
-                infoLabels={"Id": label})
+                infoLabels={"Id": item["label"]})
+    liz.setInfo(type="video",
+                infoLabels={"plot": item["plot"]})
     return xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
-                                       url=url,
+                                       url=item["thumb"],
                                        listitem=liz,
                                        isFolder=False,
                                        totalItems=total)
