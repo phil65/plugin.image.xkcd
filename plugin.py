@@ -27,7 +27,7 @@ def root():
 @plugin.route('/todaysimages')
 def todaysimages():
     xbmcplugin.setContent(plugin.handle, 'images')
-    items = get_xkcd_images(random=True)
+    items = get_xkcd_images(randomize=True)
     for item in items:
         add_image(item["label"], item["thumb"], item["thumb"])
     xbmcplugin.endOfDirectory(plugin.handle)
