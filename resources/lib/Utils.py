@@ -23,7 +23,6 @@ ADDON_NAME = ADDON.getAddonInfo('name')
 ADDON_PATH = ADDON.getAddonInfo('path').decode("utf-8")
 ADDON_VERSION = ADDON.getAddonInfo('version')
 ADDON_DATA_PATH = xbmc.translatePath("special://profile/addon_data/%s" % ADDON_ID).decode("utf-8")
-HOME = xbmcgui.Window(10000)
 SETTING = ADDON.getSetting
 
 
@@ -153,12 +152,6 @@ def notify(header="", message="", icon=ADDON_ICON, time=5000, sound=True):
                                   sound=sound)
 
 
-def get_kodi_json(method, params):
-    json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "%s", "params": %s, "id": 1}' % (method, params))
-    json_query = unicode(json_query, 'utf-8', errors='ignore')
-    return json.loads(json_query)
-
-
 def prettyprint(string):
     log(json.dumps(string,
                    sort_keys=True,
@@ -166,9 +159,7 @@ def prettyprint(string):
                    separators=(',', ': ')))
 
 
-def pass_list_to_skin(name="", data=[], prefix="", handle=None, limit=False):
-    if data and limit and int(limit) < len(data):
-        data = data[:int(limit)]
+def pass_list_to_skin(name="", data=[], prefix="", handle=None):
     if not handle:
         return None
     for item in data:
@@ -189,29 +180,3 @@ def add_image(item, total=0):
                                        listitem=liz,
                                        isFolder=False,
                                        totalItems=total)
-
-
-def create_listitems(data=None):
-    if not data:
-        return []
-    itemlist = []
-    for (count, result) in enumerate(data):
-        listitem = xbmcgui.ListItem('%s' % (str(count)))
-        for (key, value) in result.iteritems():
-            if not value:
-                continue
-            value = unicode(value)
-            if key.lower() in ["name", "label"]:
-                listitem.setLabel(value)
-            elif key.lower() in ["title"]:
-                listitem.setLabel(value)
-                listitem.setInfo('video', {key.lower(): value})
-            elif key.lower() in ["path"]:
-                listitem.setPath(path=value)
-                listitem.setProperty("path", value)
-            elif key.lower() in ["thumb", "fanart"]:
-                listitem.setArt({key.lower(): value})
-            listitem.setProperty('%s' % (key), value)
-        listitem.setProperty("index", str(count))
-        itemlist.append(listitem)
-    return itemlist
