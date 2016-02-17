@@ -13,6 +13,9 @@ from resources.lib.Utils import *
 
 plugin = routing.Plugin()
 
+MAX_IMAGE = 1640
+ITEM_PER_PAGE = 10
+
 
 @plugin.route('/')
 def root():
@@ -37,9 +40,9 @@ def todaysimages():
 def browsebyoffset():
     xbmcplugin.setContent(plugin.handle, 'genres')
     items = []
-    for i in range(0, 100):
-        items.append((plugin.url_for(browsebyoffset_view, i*20),
-                      xbmcgui.ListItem("%s - %s" % (str(i * 20 + 1), str((i + 1) * 20))),
+    for i in range(0, MAX_IMAGE // ITEM_PER_PAGE):
+        items.append((plugin.url_for(browsebyoffset_view, i*ITEM_PER_PAGE),
+                      xbmcgui.ListItem("%s - %s" % (str(i * ITEM_PER_PAGE + 1), str((i + 1) * ITEM_PER_PAGE))),
                       True))
     xbmcplugin.addDirectoryItems(plugin.handle, items)
     xbmcplugin.endOfDirectory(plugin.handle)
@@ -62,7 +65,7 @@ def get_xkcd_images(limit=20, offset=0, randomize=False):
         return read_from_file(path)
     items = []
     for i in range(0, limit):
-        comic_id = random.randrange(1, 1640) if randomize else i + offset
+        comic_id = random.randrange(1, MAX_IMAGE) if randomize else i + offset
         url = 'http://xkcd.com/%i/info.0.json' % comic_id
         results = get_JSON_response(url, 9999, folder="XKCD")
         if not results:
