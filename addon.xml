@@ -5,12 +5,12 @@
 		<import addon="script.module.simplejson" version="2.0.10"/>
 		<import addon="script.module.routing" version="0.1.0"/>
 	</requires>
-	<extension point="xbmc.python.library" library="default.py" />
 	<extension point="xbmc.python.pluginsource" library="plugin.py">
 		<provides>image</provides>
 	</extension>
+	<extension point="xbmc.python.library" library="default.py" />
 	<extension point="xbmc.addon.metadata">
-		<language/>
+		<language></language>
 		<summary lang="en">XKCD Webcomic</summary>
 		<description lang="en">XKCD is a webcomic created by Randall Munroe. The comic's tagline describes it as "A webcomic of romance, sarcasm, math, and language".</description>
 		<platform>all</platform>
