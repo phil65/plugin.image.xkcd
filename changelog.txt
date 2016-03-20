@@ -1,3 +1,6 @@
+v1.0.3
+- Cleanup
+
 v1.0.2
 - fix primary extension point type
 
